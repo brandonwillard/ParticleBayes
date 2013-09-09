@@ -1,0 +1,12 @@
+Package: ParticleBayes
+Title: Particle Bayes  
+Description: A package for generic particle filters and particle learning
+Version: 0.1
+Author: Nicholas G. Polson and Brandon Willard
+Maintainer: Brandon Willard <brandonwillard@gmail.com>
+Depends: R (>= 2.10.0), rJava (>= 0.9.4)
+Imports: rJava
+SystemRequirements: Java (>=1.7), JRI
+URL: 
+License: file lgpl-3.0.txt
+LazyData: true

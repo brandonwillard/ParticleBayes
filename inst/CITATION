@@ -1,0 +1,12 @@
+citHeader("To cite package ParticleBayes in publications use:")
+
+citEntry(entry="Article",
+        title = "",
+        author = "Nicholas G. Polson, Brandon Willard",
+        journal = "",
+        year     = 2013,
+        note = "",
+
+        textVersion =
+        paste("")
+)
