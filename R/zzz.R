@@ -8,7 +8,7 @@
 }
 
 .tryJava <- function(){
-	ty <- try(new(J("plm.utils.SamplingUtils")))
+	ty <- try(new(J("com.statslibextensions.statistics.ExtSamplingUtils")))
 	if(inherits(ty,"try-error")){
 		stop(
 "Java classes could not be loaded. Most likely because Java is not set up with your R installation.
