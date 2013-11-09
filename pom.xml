@@ -1,0 +1,84 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.bitbucket.brandonwillard</groupId>
+  <artifactId>particlebayes</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>particlebayes</name>
+  <url>http://maven.apache.org</url>
+
+  <scm>
+    <connection>scm:git:http://bitbucket.org/brandonwillard/particlebayes.git</connection>
+    <developerConnection>scm:git:ssh://git@bitbucket.org/brandonwillard/particlebayes.git</developerConnection>
+    <url>http://bitbucket.org/brandonwillard/particlebayes</url>
+  </scm>
+
+  <repositories>
+    <repository>
+      <id>brandonwillard-mvn-repo</id>
+      <url>https://api.bitbucket.org/1.0/repositories/brandonwillard/mvn-repo/raw/master</url>
+    </repository>
+  </repositories>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.1</version>
+        <configuration>
+          <outputDirectory>pkg/inst/java</outputDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.0</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+  	<dependency>
+  		<groupId>gov.sandia.foundry</groupId>
+  		<artifactId>gov-sandia-cognition-common-core</artifactId>
+  		<version>3.3.3</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>gov.sandia.foundry</groupId>
+  		<artifactId>gov-sandia-cognition-learning-core</artifactId>
+  		<version>3.3.3</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.bitbucket.brandonwillard</groupId>
+  		<artifactId>StatsLibExtensions</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
+  	</dependency>
+    <dependency>
+      <groupId>org.bitbucket.brandonwillard</groupId>
+      <artifactId>ParticleLearningModels</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+  	<dependency>
+  	  <groupId>com.google.guava</groupId>
+  	  <artifactId>guava</artifactId>
+  	  <version>14.0.1</version>
+  	</dependency>
+  </dependencies>
+</project>

@@ -3,3 +3,4 @@
 ..Rcheck/
 simple.test.r
 *.swp
+/target
