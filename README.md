@@ -11,10 +11,12 @@ the underlying, streaming-capable, API is available.
 Most models are formulated as [dynamic linear models][dlm], or mixtures thereof,
 although some support for hidden markov models exists.
 The models also implement  
+
 * [Water-filling resampling][waterfilling]
 * Parameter learning, via [Particle Learning][pl] where applicable
 
 Currently, the implemented filters cover two response types:  
+
 * Multinomial/Categorical with a logistic link function  
  * 10-component [normal mixture approximation][fs1]  
  * [TBD][fs2]  
@@ -41,7 +43,7 @@ ParticleBayes uses [Maven](http://maven.apache.org/), so you'll need to download
 Once you have it,
 ```mvn clean assembly:assembly -Dmaven.test.skip=true -DdescriptorId=jar-with-dependencies```
 should create the necessary jars in ```pkg/inst/java```, so that the code is callable from
-the R.   
+R.   
 The java code is called, within R, through [rJava][rj]
 
 Similar to the R installation, and from the project's root directory, 
