@@ -11,10 +11,12 @@ the underlying, streaming-capable, API is available.
 Most models are formulated as [dynamic linear models][dlm], or mixtures thereof,
 although some support for hidden markov models exists.
 The models also implement  
+
 * [Water-filling resampling][waterfilling]
 * Parameter learning, via [Particle Learning][pl] where applicable
 
 Currently, the implemented filters cover two response types:  
+
 * Multinomial/Categorical with a logistic link function  
  * 10-component [normal mixture approximation][fs1]  
  * [TBD][fs2]  
