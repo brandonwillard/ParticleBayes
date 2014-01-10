@@ -23,8 +23,8 @@ java.check.ex.print.stack <- function() {
 #' samples, and their weights, are deterministically accepted.
 #' 
 #' @param logWeights vector of log weights
-#' @param logWeightsSum total log weight, i.e. log sum of weights.  The value NULL implies that
-#'   	the sum is to be computed by \code{find.log.alpha}.
+#' @param logWeightsSum total log weight, i.e. log sum of weights.  The value 
+#'  \code{NULL} implies that the sum is to be computed.
 #' @param N the number of samples.  Must be <= the length of logWeights.
 #' @details For details concerning the algorithm see the paper by Nicholas Polson, Brandon Willard (2014).
 #' @return numeric value of alpha
@@ -65,6 +65,29 @@ find.log.alpha <- function(logWeights, logWeightsSum=NULL, N) {
   return(result)
 }
 
+#'
+#' Given weights and an associated support, this function will 
+#' perform water-filling resampling.  
+#' 
+#' @param logWeights vector of log weights
+#' @param logWeightsSum total log weight, i.e. log sum of weights.  The value 
+#'  \code{NULL} implies that the sum is to be computed.
+#' @param support objects in the suppport that are associated with the \code{logWeights}.
+#' @param N the number of samples.  Must be <= the length of logWeights.
+#' @param seed seed for the random number generator.
+#' @details For details concerning the algorithm see the paper by Nicholas Polson, Brandon Willard (2014).
+#' @return A list containing each resampled object in the support and its associated weight. 
+#' @references Nicholas G. Polson, Brandon Willard (2014), "Recursive Bayesian Computation".
+#' @author Brandon Willard \email{brandonwillard@@gmail.com}
+#' @examples 
+#'   x = seq(0, 10, 1)
+#'   log.weights = dt(x, df=1, log=T)
+#'   log.weights.sum = log(sum(dt(x, df=1, log=F)))
+#' 
+#'   wf.result = water.filling.resample(log.weights, log.weights.sum, x, 8)
+#' 
+#' @keywords water-filling
+#' 
 water.filling.resample <- function(logWeights, logWeightsSum=NULL, support, N, seed=NULL) {
   jrng = .jnew("java.util.Random")
   if (!is.null(seed))
