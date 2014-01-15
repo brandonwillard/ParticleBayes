@@ -4,7 +4,7 @@ ParticleBayes is an R package that contains a collection of
 [particle filters](http://en.wikipedia.org/wiki/Particle_filter) 
 for a subset of hierarchical bayesian models, with a focus on sequentially 
 learning model parameters alongside state variables.  The R code calls an
-open-source java library, [ParticleLearningModels][plm], to perform calculations, 
+open-source Java library, [ParticleLearningModels][plm], to perform calculations, 
 so when/if a practitioner wants to implement a model in production, 
 the underlying, streaming-capable, API is available.
   
@@ -41,7 +41,7 @@ Development Setup and Installation
 ==
 ParticleBayes uses [Maven](http://maven.apache.org/), so you'll need to download that.  
 Once you have it,
-```mvn clean assembly:assembly -Dmaven.test.skip=true -DdescriptorId=jar-with-dependencies```
+```mvn clean package -Dmaven.test.skip=true```
 should create the necessary jars in ```pkg/inst/java```, so that the code is callable from
 R.   
 The java code is called, within R, through [rJava][rj]
@@ -53,7 +53,7 @@ library(devtools)
 
 dev_mode(on=T)
 
-system("mvn clean assembly:assembly -Dmaven.test.skip=true -DdescriptorId=jar-with-dependencies")
+system("mvn clean package -Dmaven.test.skip=true")
 
 install_local("./pkg")
 
@@ -78,5 +78,5 @@ The script will build the Java code, install the package in an isolated environm
 [dlm]:http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.34.9040
 [fs1]:http://www.sciencedirect.com/science/article/pii/S0167947306003720
 [fs2]:http://dl.acm.org/citation.cfm?id=2414419
+[pl]:http://projecteuclid.org/euclid.ss/1280841735
 [waterfilling]:tbd
-[pl]:http://www.oxfordscholarship.com/view/10.1093/acprof:oso/9780199694587.001.0001/acprof-9780199694587-chapter-11

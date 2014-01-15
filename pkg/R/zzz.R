@@ -1,6 +1,6 @@
 # Borrowed from http://cran.r-project.org/web/packages/OpenStreetMap/index.html
 # 
-# Author: brandonwillard (orginally ianfellows)
+# Author: brandonwillard
 ###############################################################################
 
 .isMac <- function(){

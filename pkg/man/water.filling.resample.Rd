@@ -35,10 +35,10 @@ Nicholas Polson, Brandon Willard (2014).
 }
 \examples{
 x = seq(0, 10, 1)
-  log.weights = dt(x, df=1, log=T)
-  log.weights.sum = log(sum(dt(x, df=1, log=F)))
+log.weights = dt(x, df=1, log=T)
+log.weights.sum = log(sum(dt(x, df=1, log=F)))
 
-  wf.result = water.filling.resample(log.weights, log.weights.sum, x, 8)
+wf.result = water.filling.resample(log.weights, log.weights.sum, x, 8)
 }
 \author{
 Brandon Willard \email{brandonwillard@gmail.com}

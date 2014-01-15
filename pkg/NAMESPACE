@@ -1,0 +1,5 @@
+export(catHmmPL)
+export(find.log.alpha)
+export(water.filling.resample)
+export(wfAR)
+export(wfLogit)
