@@ -177,7 +177,6 @@ wfLogit <- function(y, X,
   jC0 = .jarray(as.matrix(C0), dispatch=T) 
   jF = .jarray(t(as.matrix(X[1,])), dispatch=T) 
   jG = .jarray(as.matrix(G), dispatch=T)
-  jmodelCovar = .jarray(as.matrix(W), dispatch=T)
   jnumParticles = as.integer(numParticles)
   jobsData = .jarray(as.matrix(X), dispatch=T) 
   jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.FruehwirthLogitPLAdapter")
@@ -306,6 +305,9 @@ wfAR <- function(y,
     sigma2Scale = 2, sigma2Shape = 1, FF, 
     numSubSamples = 3, numParticles = 1000, seed=NULL) {
 
+  stopifnot(length(m0) == nrow(C0))
+  stopifnot(length(mPsi0) == nrow(CPsi0))
+  stopifnot(length(mPsi0)/2 == length(m0))
   stopifnot(numSubSamples >= 1)
   stopifnot(sigma2Scale > 1)
   stopifnot(sigma2Shape > 0)
@@ -320,17 +322,16 @@ wfAR <- function(y,
   jsigma2Scale = as.double(sigma2Scale)
   jsigma2Shape = as.double(sigma2Shape)
   jF = .jarray(as.matrix(FF), dispatch=T) 
-  jmodelCovar = .jarray(as.matrix(W), dispatch=T)
   jnumParticles = as.integer(numParticles)
   jnumSubSamples = as.integer(numSubSamples)
-  jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.GaussianArHLAdapter")
+  jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.GaussianArHpPLAdapter")
   jResult = jFsPlAdapter$batchUpdate(
       jm0, jC0, 
       jmPsi0, jCPsi0, 
-      jsigma2Scale, jsigma2Shape,
+      jsigma2Shape, jsigma2Scale,
       jF, 
       jnumSubSamples,
-      .jarray(as.double(y)), 
+      .jarray(as.matrix(y), dispatch=T), 
       jnumParticles, jseed) 
   rlogWeights = .jevalArray(jResult$getLogWeights(), simplify=T)
   rstateMeans = .jevalArray(jResult$getStateMeans(), simplify=T)
