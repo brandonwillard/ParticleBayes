@@ -23,9 +23,9 @@ java.check.ex.print.stack <- function() {
 #' samples, and their weights, are deterministically accepted.
 #' 
 #' @param logWeights vector of log weights
+#' @param N the number of samples.  Must be <= the length of logWeights.
 #' @param logWeightsSum total log weight, i.e. log sum of weights.  The value 
 #'  \code{NULL} implies that the sum is to be computed.
-#' @param N the number of samples.  Must be <= the length of logWeights.
 #' @details For details concerning the algorithm see the paper by Nicholas Polson, Brandon Willard (2014).
 #' @return numeric value of alpha
 #' @references Nicholas G. Polson, Brandon Willard (2014), "Recursive Bayesian Computation".
@@ -41,7 +41,7 @@ java.check.ex.print.stack <- function() {
 #'   print(log.alpha)
 #' @keywords water-filling
 #' @export
-find.log.alpha <- function(logWeights, logWeightsSum=NULL, N) {
+find.log.alpha <- function(logWeights, N, logWeightsSum=NULL) {
   jlogWeights = as.double(logWeights)
   jN = as.integer(N)
   stopifnot(N > 1)
@@ -70,10 +70,10 @@ find.log.alpha <- function(logWeights, logWeightsSum=NULL, N) {
 #' perform water-filling resampling.  
 #' 
 #' @param logWeights vector of log weights
-#' @param logWeightsSum total log weight, i.e. log sum of weights.  The value 
-#'  \code{NULL} implies that the sum is to be computed.
 #' @param support objects in the suppport that are associated with the \code{logWeights}.
 #' @param N the number of samples.  Must be <= the length of logWeights.
+#' @param logWeightsSum total log weight, i.e. log sum of weights.  The value 
+#'  \code{NULL} implies that the sum is to be computed.
 #' @param seed seed for the random number generator.
 #' @details For details concerning the algorithm see the paper by Nicholas Polson, Brandon Willard (2014).
 #' @return A list containing each resampled object in the support and its associated weight. 
@@ -82,16 +82,17 @@ find.log.alpha <- function(logWeights, logWeightsSum=NULL, N) {
 #' @examples 
 #' x = seq(0, 10, 1)
 #' log.weights = dt(x, df=1, log=T)
-#' log.weights.sum = log(sum(dt(x, df=1, log=F)))
 #' 
-#' wf.result = water.filling.resample(log.weights, log.weights.sum, x, 8)
+#' wf.result = water.filling.resample(log.weights, 8, support=x)
 #' @keywords water-filling
 #' @export 
-water.filling.resample <- function(logWeights, logWeightsSum=NULL, support, N, seed=NULL) {
+water.filling.resample <- function(logWeights, N, support=NULL, logWeightsSum=NULL, seed=NULL) {
   jrng = .jnew("java.util.Random")
   if (!is.null(seed))
     jrng$setSeed(seed)
   jobjects = new(J("java.util.ArrayList"))
+  if (is.null(support))
+    support = seq_along(logWeights)
   for (obj in support) {
     jobjects$add(as.character(obj))
   }
@@ -268,20 +269,19 @@ catHmmPL <- function(y, M, X,
   return(list(logWeights = rlogWeights, classIds = rclassIds))
 }
 
-
 #'
 #' Particle filter for a gaussian AR(1) dynamic linear model.  States
 #' have normal priors, AR(1) and state transition constant parameters
 #' are a joint normal --psi-- distribution, and sigma2 has an inverse-gamma prior.
 #' 
 #' @param y dependent variable vector
+#' @param FF observation matrix
 #' @param m0 state prior mean vector
 #' @param C0 state prior covariance matrix
 #' @param mPsi0 vector of state transition constant and AR(1) prior means
 #' @param CPsi0 state transition constant and AR(1) prior covariance matrix
 #' @param sigma2Scale scale parameter for sigma2 inverse-gamma prior
 #' @param sigma2Shape shape parameter for sigma2 inverse-gamma prior
-#' @param FF observation matrix
 #' @param numSubSamples sub samples for state variable
 #' @param numParticles number of particles
 #' @param seed seed for the random number generator.
@@ -299,10 +299,10 @@ catHmmPL <- function(y, M, X,
 #' @keywords water-filling 
 #' @keywords hidden markov model
 #' @export  
-wfAR <- function(y,  
+wfAR <- function(y, FF,
     m0, C0 = diag(length(m0)), 
     mPsi0 = rep(0, 2*ncol(C0)), CPsi0 = diag(2*ncol(C0)), 
-    sigma2Scale = 2, sigma2Shape = 1, FF, 
+    sigma2Scale = 2, sigma2Shape = 1,  
     numSubSamples = 3, numParticles = 1000, seed=NULL) {
 
   stopifnot(length(m0) == nrow(C0))
