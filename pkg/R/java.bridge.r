@@ -109,7 +109,7 @@ water.filling.resample <- function(logWeights, N, support=NULL, logWeightsSum=NU
   jresult = .jcall("com.statslibextensions.statistics.ExtSamplingUtils", 
                   "Lcom/statslibextensions/statistics/distribution/WFCountedDataDistribution;",
                   "waterFillingResample", jlogWeights, jlogSum, 
-                  .jcast(jobjects, new.class="java/util/List"), jrng, jN, check=F)
+                  .jcast(jobjects, new.class="java/util/Collection"), jrng, jN, check=F)
 
   if (java.check.ex.print.stack())
     return(NULL)
