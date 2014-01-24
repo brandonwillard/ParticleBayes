@@ -30,7 +30,7 @@ While ParticleBayes is still in it's beta stages, installation in R requires
 the [devtools][dt] package and something like the following:
 ```
 library(devtools)
-install_bitbucket("ParticleBayes")
+install_url("https://bitbucket.org/brandonwillard/particlebayes/get/HEAD.zip", subdir="pkg")
 ```
 then, as usual, add ```library(ParticleBayes)``` to your R source to use.  
 NOTE: This will pick up the most recently pushed version of the code (i.e. the
