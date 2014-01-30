@@ -4,12 +4,14 @@
 have normal priors, AR(1) and state transition constant parameters
 are a joint normal --psi-- distribution, and sigma2 has an inverse-gamma prior.}
 \usage{
-wfAR(y, m0, C0 = diag(length(m0)), mPsi0 = rep(0, 2 * ncol(C0)),
-  CPsi0 = diag(2 * ncol(C0)), sigma2Scale = 2, sigma2Shape = 1, FF,
+wfAR(y, FF, m0, C0 = diag(length(m0)), mPsi0 = rep(0, 2 * ncol(C0)),
+  CPsi0 = diag(2 * ncol(C0)), sigma2Scale = 2, sigma2Shape = 1,
   numSubSamples = 3, numParticles = 1000, seed = NULL)
 }
 \arguments{
   \item{y}{dependent variable vector}
+
+  \item{FF}{observation matrix}
 
   \item{m0}{state prior mean vector}
 
@@ -26,8 +28,6 @@ wfAR(y, m0, C0 = diag(length(m0)), mPsi0 = rep(0, 2 * ncol(C0)),
 
   \item{sigma2Shape}{shape parameter for sigma2
   inverse-gamma prior}
-
-  \item{FF}{observation matrix}
 
   \item{numSubSamples}{sub samples for state variable}
 

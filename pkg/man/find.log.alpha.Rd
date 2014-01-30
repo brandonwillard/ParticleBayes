@@ -3,17 +3,17 @@
 \title{Computes the water-filling level, alpha, with which
 samples, and their weights, are deterministically accepted.}
 \usage{
-find.log.alpha(logWeights, logWeightsSum = NULL, N)
+find.log.alpha(logWeights, N, logWeightsSum = NULL)
 }
 \arguments{
   \item{logWeights}{vector of log weights}
 
+  \item{N}{the number of samples.  Must be <= the length of
+  logWeights.}
+
   \item{logWeightsSum}{total log weight, i.e. log sum of
   weights.  The value \code{NULL} implies that the sum is
   to be computed.}
-
-  \item{N}{the number of samples.  Must be <= the length of
-  logWeights.}
 }
 \value{
 numeric value of alpha

@@ -86,15 +86,22 @@ find.log.alpha <- function(logWeights, N, logWeightsSum=NULL) {
 #' wf.result = water.filling.resample(log.weights, 8, support=x)
 #' @keywords water-filling
 #' @export 
-water.filling.resample <- function(logWeights, N, support=NULL, logWeightsSum=NULL, seed=NULL) {
+water.filling.resample <- function(logWeights, N, support=NULL, 
+    logWeightsSum=NULL, seed=NULL) {
   jrng = .jnew("java.util.Random")
   if (!is.null(seed))
     jrng$setSeed(seed)
   jobjects = new(J("java.util.ArrayList"))
-  if (is.null(support))
-    support = seq_along(logWeights)
-  for (obj in support) {
-    jobjects$add(as.character(obj))
+
+  rsupport = seq_along(logWeights)
+  for (obj in rsupport) {
+    .jcall(jobjects, "Z", "add", 
+        .jcast(
+            .jnew("java.lang.Integer", as.integer(obj))
+            ,new.class="java.lang.Object")
+        )
+    #.jcall(jobjects, "B", "add", .jnew("java.lang.Integer", as.integer(obj)))
+    #jobjects$add(.jnew("java.lang.Integer", as.integer(obj)))
   }
   jlogWeights = as.double(logWeights)
   jN = as.integer(N)
@@ -114,27 +121,34 @@ water.filling.resample <- function(logWeights, N, support=NULL, logWeightsSum=NU
   if (java.check.ex.print.stack())
     return(NULL)
 
-  aList = .jconvertCountedDataDistribution(jresult)
+  aList = .jconvertCountedDataDistribution(jresult, support)
   
   return(aList)
 }
 
-.jconvertCountedDataDistribution <- function(jobj) {
+.jconvertCountedDataDistribution <- function(jobj, ref.support = NULL) {
   jmap = jobj$asMap()
   # could just use lapply...
   jkeySet = .jrcall(jmap,"keySet")
   jiter = .jrcall(jkeySet,"iterator")
-  aList = list()
+  jsize = .jrcall(jkeySet,"size")
+  aList = vector(mode="list", length=as.integer(jsize))
+  i = 1
   while(.jrcall(jiter,"hasNext")) {
     jkey = .jrcall(jiter,"next", simplify=F);
-    jskey = as.character(.jsimplify(jkey))
-    jval = .jrcall(jmap,"get",jkey)
+    jobjKey = .jcast(jkey ,new.class="java.lang.Object")
+    idx = as.integer(.jsimplify(jkey))
+    rskey = idx 
+    if (!is.null(ref.support)) {
+      rskey = ref.support[idx]  
+    } 
+    jval = .jrcall(jmap,"get", jobjKey)
+    aList[[i]]$value = rskey
+    aList[[i]]$weight = .jrcall(jobj, "getFraction", jobjKey)
     if (.jinstanceof(jval, "com.statslibextensions.math.MutableDoubleCount")) {
-      aList[[jskey]]$count = jval$getCount() 
-      aList[[jskey]]$value = jval$getValue() 
-    } else {
-      aList[[jskey]] = jval$getValue()
-    }
+      aList[[i]]$count = jval$getCount() 
+    } 
+    i = i + 1
   }
   return(aList)
 }
