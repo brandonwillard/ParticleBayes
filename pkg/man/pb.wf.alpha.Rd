@@ -1,9 +1,9 @@
-\name{find.log.alpha}
-\alias{find.log.alpha}
+\name{pb.wf.alpha}
+\alias{pb.wf.alpha}
 \title{Computes the water-filling level, alpha, with which
 samples, and their weights, are deterministically accepted.}
 \usage{
-find.log.alpha(logWeights, N, logWeightsSum = NULL)
+pb.wf.alpha(logWeights, N, logWeightsSum = NULL)
 }
 \arguments{
   \item{logWeights}{vector of log weights}
@@ -28,10 +28,10 @@ Nicholas Polson, Brandon Willard (2014).
 }
 \examples{
 x = seq(0, 10, 1)
-  log.weights = dt(x, df=1, log=T)
-  log.weights.sum = log(sum(dt(x, df=1, log=F)))
+  log.weights = dt(x, df=1, log=TRUE)
+  log.weights.sum = log(sum(dt(x, df=1, log=FALSE)))
 
-  log.alpha = find.log.alpha(log.weights, log.weights.sum, 8)
+  log.alpha = pb.wf.alpha(log.weights, log.weights.sum, 8)
   print(log.alpha)
 }
 \author{
@@ -42,7 +42,7 @@ Nicholas G. Polson, Brandon Willard (2014), "Recursive
 Bayesian Computation".
 }
 \seealso{
-\code{\link{water.filling.resample}}
+\code{\link{pb.wf.resample}}
 }
 \keyword{water-filling}
 

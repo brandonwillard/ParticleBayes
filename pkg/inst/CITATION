@@ -1,12 +1,10 @@
 citHeader("To cite package ParticleBayes in publications use:")
 
 citEntry(entry="Article",
-        title = "",
+        title = "Recursive Bayesian Computation",
         author = "Nicholas G. Polson, Brandon Willard",
-        journal = "",
-        year     = 2013,
+        journal = "TBD",
+        year     = 2014,
         note = "",
-
-        textVersion =
-        paste("")
+        textVersion = paste("")
 )

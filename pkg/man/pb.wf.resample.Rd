@@ -1,9 +1,9 @@
-\name{water.filling.resample}
-\alias{water.filling.resample}
+\name{pb.wf.resample}
+\alias{pb.wf.resample}
 \title{Given weights and an associated support, this function will
 perform water-filling resampling.}
 \usage{
-water.filling.resample(logWeights, N, support = NULL, logWeightsSum = NULL,
+pb.wf.resample(logWeights, N, support = NULL, logWeightsSum = NULL,
   seed = NULL)
 }
 \arguments{
@@ -35,9 +35,9 @@ Nicholas Polson, Brandon Willard (2014).
 }
 \examples{
 x = seq(0, 10, 1)
-log.weights = dt(x, df=1, log=T)
+log.weights = dt(x, df=1, log=TRUE)
 
-wf.result = water.filling.resample(log.weights, 8, support=x)
+wf.result = pb.wf.resample(log.weights, 8, support=x)
 }
 \author{
 Brandon Willard \email{brandonwillard@gmail.com}

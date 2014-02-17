@@ -39,15 +39,8 @@
 #'   Nicholas G. Polson, Brandon Willard (2014), 
 #'   "Recursive Bayesian Computation".
 #' @keywords package
-#' @seealso
-#'   \code{\link{find.log.alpha}}, 
-#'   \code{\link{water.filling.resample}}, 
-#'   \code{\link{wfMultiLogit}}, 
-#'   \code{\link{wfLogit}},
-#'   \code{\link{catHmmPl}}
 #'
-#' @examples
-#' # please run the examples in water.filling.resample
+#' @import rJava
 #'
 #' @docType package
 NULL

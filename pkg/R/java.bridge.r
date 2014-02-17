@@ -5,7 +5,7 @@
 # Much easier that way.
 #
 
-java.check.ex.print.stack <- function() {
+.java.check.ex.print.stack <- function() {
   if (!is.null(e<-.jgetEx())) {
     print("Java exception was raised")
     baos <- new(J("java.io.StringWriter"))
@@ -17,6 +17,34 @@ java.check.ex.print.stack <- function() {
     return(F)
   }
 }
+
+.jconvertCountedDataDistribution <- function(jobj, ref.support = NULL) {
+  jmap = jobj$asMap()
+  # could just use lapply...
+  jkeySet = .jrcall(jmap,"keySet")
+  jiter = .jrcall(jkeySet,"iterator")
+  jsize = .jrcall(jkeySet,"size")
+  aList = vector(mode="list", length=as.integer(jsize))
+  i = 1
+  while(.jrcall(jiter,"hasNext")) {
+    jkey = .jrcall(jiter,"next", simplify=F);
+    jobjKey = .jcast(jkey ,new.class="java.lang.Object")
+    idx = as.integer(.jsimplify(jkey))
+    rskey = idx 
+    if (!is.null(ref.support)) {
+      rskey = ref.support[idx]  
+    } 
+    jval = .jrcall(jmap,"get", jobjKey)
+    aList[[i]]$value = rskey
+    aList[[i]]$weight = .jrcall(jobj, "getFraction", jobjKey)
+    if (.jinstanceof(jval, "com.statslibextensions.math.MutableDoubleCount")) {
+      aList[[i]]$count = jval$getCount() 
+    } 
+    i = i + 1
+  }
+  return(aList)
+}
+
 
 #'
 #' Computes the water-filling level, alpha, with which 
@@ -30,18 +58,18 @@ java.check.ex.print.stack <- function() {
 #' @return numeric value of alpha
 #' @references Nicholas G. Polson, Brandon Willard (2014), "Recursive Bayesian Computation".
 #' @author Brandon Willard \email{brandonwillard@@gmail.com}
-#' @seealso \code{\link{water.filling.resample}}
+#' @seealso \code{\link{pb.wf.resample}}
 #' @examples 
 #' 
 #'   x = seq(0, 10, 1)
-#'   log.weights = dt(x, df=1, log=T)
-#'   log.weights.sum = log(sum(dt(x, df=1, log=F)))
+#'   log.weights = dt(x, df=1, log=TRUE)
+#'   log.weights.sum = log(sum(dt(x, df=1, log=FALSE)))
 #' 
-#'   log.alpha = find.log.alpha(log.weights, log.weights.sum, 8)
+#'   log.alpha = pb.wf.alpha(log.weights, log.weights.sum, 8)
 #'   print(log.alpha)
 #' @keywords water-filling
 #' @export
-find.log.alpha <- function(logWeights, N, logWeightsSum=NULL) {
+pb.wf.alpha <- function(logWeights, N, logWeightsSum=NULL) {
   jlogWeights = as.double(logWeights)
   jN = as.integer(N)
   stopifnot(N > 1)
@@ -49,7 +77,7 @@ find.log.alpha <- function(logWeights, N, logWeightsSum=NULL) {
   if (is.null(logWeightsSum)) {
     jlogSum = .jcall("com.statslibextensions.statistics.ExtSamplingUtils", "D","logSum", 
                      jlogWeights, check=F)
-    if(java.check.ex.print.stack())
+    if(.java.check.ex.print.stack())
       return(NULL)
   } else {
     jlogSum = as.double(logWeightsSum)
@@ -59,7 +87,7 @@ find.log.alpha <- function(logWeights, N, logWeightsSum=NULL) {
 
   result = .jcall("com.statslibextensions.statistics.ExtSamplingUtils", "D","findLogAlpha", 
                   jlogWeights, jlogSum, jN, check=F)
-  if(java.check.ex.print.stack())
+  if(.java.check.ex.print.stack())
     return(NULL)
   
   return(result)
@@ -81,12 +109,12 @@ find.log.alpha <- function(logWeights, N, logWeightsSum=NULL) {
 #' @author Brandon Willard \email{brandonwillard@@gmail.com}
 #' @examples 
 #' x = seq(0, 10, 1)
-#' log.weights = dt(x, df=1, log=T)
+#' log.weights = dt(x, df=1, log=TRUE)
 #' 
-#' wf.result = water.filling.resample(log.weights, 8, support=x)
+#' wf.result = pb.wf.resample(log.weights, 8, support=x)
 #' @keywords water-filling
 #' @export 
-water.filling.resample <- function(logWeights, N, support=NULL, 
+pb.wf.resample <- function(logWeights, N, support=NULL, 
     logWeightsSum=NULL, seed=NULL) {
   jrng = .jnew("java.util.Random")
   if (!is.null(seed))
@@ -118,38 +146,11 @@ water.filling.resample <- function(logWeights, N, support=NULL,
                   "waterFillingResample", jlogWeights, jlogSum, 
                   .jcast(jobjects, new.class="java/util/Collection"), jrng, jN, check=F)
 
-  if (java.check.ex.print.stack())
+  if (.java.check.ex.print.stack())
     return(NULL)
 
   aList = .jconvertCountedDataDistribution(jresult, support)
   
-  return(aList)
-}
-
-.jconvertCountedDataDistribution <- function(jobj, ref.support = NULL) {
-  jmap = jobj$asMap()
-  # could just use lapply...
-  jkeySet = .jrcall(jmap,"keySet")
-  jiter = .jrcall(jkeySet,"iterator")
-  jsize = .jrcall(jkeySet,"size")
-  aList = vector(mode="list", length=as.integer(jsize))
-  i = 1
-  while(.jrcall(jiter,"hasNext")) {
-    jkey = .jrcall(jiter,"next", simplify=F);
-    jobjKey = .jcast(jkey ,new.class="java.lang.Object")
-    idx = as.integer(.jsimplify(jkey))
-    rskey = idx 
-    if (!is.null(ref.support)) {
-      rskey = ref.support[idx]  
-    } 
-    jval = .jrcall(jmap,"get", jobjKey)
-    aList[[i]]$value = rskey
-    aList[[i]]$weight = .jrcall(jobj, "getFraction", jobjKey)
-    if (.jinstanceof(jval, "com.statslibextensions.math.MutableDoubleCount")) {
-      aList[[i]]$count = jval$getCount() 
-    } 
-    i = i + 1
-  }
   return(aList)
 }
 
@@ -176,11 +177,10 @@ water.filling.resample <- function(logWeights, N, support=NULL,
 #' 
 #' Nicholas G. Polson, Brandon Willard (2014), "Recursive Bayesian Computation".
 #' @author Brandon Willard \email{brandonwillard@@gmail.com}
-#' @examples TODO
 #' @keywords water-filling 
 #' @keywords logistic regression
 #' @export 
-wfLogit <- function(y, X, 
+pb.logit.wf <- function(y, X, 
     m0 = rep(0, ncol(X)), C0 = diag(ncol(X)), 
     G = diag(nrow(C0)), W = diag(nrow(C0)), 
     numParticles = 1000, waterFilling=T, seed=NULL) {
@@ -207,34 +207,34 @@ wfLogit <- function(y, X,
   return(list(logWeights = rlogWeights, betas = rbetas))
 }
 
-wfMultiLogit <- function(y, M, X, 
-    m0 = rep(0, ncol(X)), C0 = diag(ncol(X)), 
-    G = diag(ncol(X)), W = diag(ncol(X)), 
-    numParticles = 1000, seed=NULL) {
-
-  jseed = ifelse(is.null(seed), 
-          as.integer(.Random.seed[sample(3:length(.Random.seed), 1)]), 
-          as.integer(seed))
-  jm0 = .jarray(m0) 
-  jC0 = .jarray(as.matrix(C0), dispatch=T) 
-  jF = .jarray(t(as.matrix(X[1,])), dispatch=T) 
-  jG = .jarray(as.matrix(G), dispatch=T)
-  jmodelCovar = .jarray(as.matrix(W), dispatch=T)
-  jnumParticles = as.integer(numParticles)
-  jnumCategories = as.integer(M)
-  jobsData = .jarray(as.matrix(X), dispatch=T) 
-  jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.FruehwirthMultiPLAdapter")
-  jResult = jFsPlAdapter$batchUpdate(jm0, jC0, jF, jG, jmodelCovar, 
-                                     .jarray(as.double(y)), 
-                                     jnumParticles,
-                                     jnumCategories,
-                                     jobsData,
-                                     jseed) 
-  rlogWeights = .jevalArray(jResult$getLogWeights(), simplify=T)
-  rbetas = .jevalArray(jResult$getStateMeans(), simplify=T)
-
-  return(list(logWeights = rlogWeights, betas = rbetas))
-}
+#wfMultiLogit <- function(y, M, X, 
+#    m0 = rep(0, ncol(X)), C0 = diag(ncol(X)), 
+#    G = diag(ncol(X)), W = diag(ncol(X)), 
+#    numParticles = 1000, seed=NULL) {
+#
+#  jseed = ifelse(is.null(seed), 
+#          as.integer(.Random.seed[sample(3:length(.Random.seed), 1)]), 
+#          as.integer(seed))
+#  jm0 = .jarray(m0) 
+#  jC0 = .jarray(as.matrix(C0), dispatch=T) 
+#  jF = .jarray(t(as.matrix(X[1,])), dispatch=T) 
+#  jG = .jarray(as.matrix(G), dispatch=T)
+#  jmodelCovar = .jarray(as.matrix(W), dispatch=T)
+#  jnumParticles = as.integer(numParticles)
+#  jnumCategories = as.integer(M)
+#  jobsData = .jarray(as.matrix(X), dispatch=T) 
+#  jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.FruehwirthMultiPLAdapter")
+#  jResult = jFsPlAdapter$batchUpdate(jm0, jC0, jF, jG, jmodelCovar, 
+#                                     .jarray(as.double(y)), 
+#                                     jnumParticles,
+#                                     jnumCategories,
+#                                     jobsData,
+#                                     jseed) 
+#  rlogWeights = .jevalArray(jResult$getLogWeights(), simplify=T)
+#  rbetas = .jevalArray(jResult$getStateMeans(), simplify=T)
+#
+#  return(list(logWeights = rlogWeights, betas = rbetas))
+#}
 
 #'
 #' Particle filter for a Hidden Markov Model with categorical emissions. 
@@ -254,11 +254,10 @@ wfMultiLogit <- function(y, M, X,
 #' @references 
 #' Nicholas G. Polson, Brandon Willard (2014), "Recursive Bayesian Computation".
 #' @author Brandon Willard \email{brandonwillard@@gmail.com}
-#' @examples TODO
 #' @keywords water-filling 
 #' @keywords hidden markov model
 #' @export 
-catHmmPL <- function(y, M, X, 
+pb.hmm.cat <- function(y, M, X, 
     hmmClassProbs, hmmTransProbs, emissionProbs,
     numParticles = 1000, seed=NULL) {
 
@@ -305,15 +304,13 @@ catHmmPL <- function(y, M, X,
 #' @references 
 #' Nicholas G. Polson, Brandon Willard (2014), "Recursive Bayesian Computation".
 #' @author Brandon Willard \email{brandonwillard@@gmail.com}
-#' @examples 
-#' TODO
 #' @keywords autoregressive
 #' @keywords dynamic linear model 
 #' @keywords dlm 
 #' @keywords water-filling 
 #' @keywords hidden markov model
 #' @export  
-wfAR <- function(y, FF,
+pb.dlm.ar <- function(y, FF,
     m0, C0 = diag(length(m0)), 
     mPsi0 = rep(0, 2*ncol(C0)), CPsi0 = diag(2*ncol(C0)), 
     sigma2Scale = 2, sigma2Shape = 1,  

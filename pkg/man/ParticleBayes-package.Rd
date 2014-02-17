@@ -29,9 +29,6 @@ their univariate equivalents.
 Package\cr Version: \tab 0.1\cr Date: \tab 2014-01-09\cr
 License: \tab LGPL-3\cr }
 }
-\examples{
-# please run the examples in water.filling.resample
-}
 \author{
 Nicholas Polson Brandon Willard Maintainer: Brandon
 Willard\email{brandonwillard@gmail.com}
@@ -39,12 +36,6 @@ Willard\email{brandonwillard@gmail.com}
 \references{
 Nicholas G. Polson, Brandon Willard (2014), "Recursive
 Bayesian Computation".
-}
-\seealso{
-\code{\link{find.log.alpha}},
-\code{\link{water.filling.resample}},
-\code{\link{wfMultiLogit}}, \code{\link{wfLogit}},
-\code{\link{catHmmPl}}
 }
 \keyword{package}
 

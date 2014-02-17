@@ -1,8 +1,8 @@
-\name{catHmmPL}
-\alias{catHmmPL}
+\name{pb.hmm.cat}
+\alias{pb.hmm.cat}
 \title{Particle filter for a Hidden Markov Model with categorical emissions.}
 \usage{
-catHmmPL(y, M, X, hmmClassProbs, hmmTransProbs, emissionProbs,
+pb.hmm.cat(y, M, X, hmmClassProbs, hmmTransProbs, emissionProbs,
   numParticles = 1000, seed = NULL)
 }
 \arguments{
@@ -37,9 +37,6 @@ emissions.
 \details{
 For details concerning the algorithm see the paper by
 Nicholas Polson, Brandon Willard (2014).
-}
-\examples{
-TODO
 }
 \author{
 Brandon Willard \email{brandonwillard@gmail.com}

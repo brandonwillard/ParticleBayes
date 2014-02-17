@@ -1,9 +1,9 @@
-\name{wfLogit}
-\alias{wfLogit}
+\name{pb.logit.wf}
+\alias{pb.logit.wf}
 \title{Particle filter implementing binomial logistic regression via a mixture
 of normals and using water-filling.}
 \usage{
-wfLogit(y, X, m0 = rep(0, ncol(X)), C0 = diag(ncol(X)),
+pb.logit.wf(y, X, m0 = rep(0, ncol(X)), C0 = diag(ncol(X)),
   G = diag(nrow(C0)), W = diag(nrow(C0)), numParticles = 1000,
   waterFilling = T, seed = NULL)
 }
@@ -40,9 +40,6 @@ via a mixture of normals and using water-filling.
 \details{
 For details concerning the algorithm see the paper by
 Nicholas Polson, Brandon Willard (2014).
-}
-\examples{
-TODO
 }
 \author{
 Brandon Willard \email{brandonwillard@gmail.com}

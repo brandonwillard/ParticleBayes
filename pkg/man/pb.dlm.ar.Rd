@@ -1,10 +1,10 @@
-\name{wfAR}
-\alias{wfAR}
+\name{pb.dlm.ar}
+\alias{pb.dlm.ar}
 \title{Particle filter for a gaussian AR(1) dynamic linear model.  States
 have normal priors, AR(1) and state transition constant parameters
 are a joint normal --psi-- distribution, and sigma2 has an inverse-gamma prior.}
 \usage{
-wfAR(y, FF, m0, C0 = diag(length(m0)), mPsi0 = rep(0, 2 * ncol(C0)),
+pb.dlm.ar(y, FF, m0, C0 = diag(length(m0)), mPsi0 = rep(0, 2 * ncol(C0)),
   CPsi0 = diag(2 * ncol(C0)), sigma2Scale = 2, sigma2Shape = 1,
   numSubSamples = 3, numParticles = 1000, seed = NULL)
 }
@@ -50,9 +50,6 @@ distribution, and sigma2 has an inverse-gamma prior.
 \details{
 For details concerning the algorithm see the paper by
 Nicholas Polson, Brandon Willard (2014).
-}
-\examples{
-TODO
 }
 \author{
 Brandon Willard \email{brandonwillard@gmail.com}

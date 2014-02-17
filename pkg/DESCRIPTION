@@ -7,8 +7,6 @@ Maintainer: Brandon Willard <brandonwillard@gmail.com>
 Depends:
     R (>= 2.10.0),
     rJava (>= 0.9)
-Imports:
-    rJava
 SystemRequirements: Java (>=1.6), JRI
 URL: 
 License: file lgpl-3.0.txt
