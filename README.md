@@ -26,6 +26,16 @@ and, naturally, their univariate equivalents.
 
 Installation from R
 ==
+ParticleBayes depends on the rJava R package, so make sure it's installed and
+operational.  This also means you'll need to have a functional JRE, so if you
+don't you can get one from 
+[here](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase6-419409.html#jre-6u45-oth-JPR), 
+install, and then run ```R CMD javareconf``` (with sudo if you're using linux)
+at the command line.  If you're using a Mac, you might need to run something
+like ```R CMD javareconf JAVA_CPPFLAGS=-I/System/Library/Frameworks/JavaVM.framework/Headers```
+instead.  Pay attention for any errors in the output, and look around the internet 
+for more information.
+ 
 While ParticleBayes is still in it's beta stages, installation in R requires 
 the [devtools][dt] package and something like the following:
 ```
