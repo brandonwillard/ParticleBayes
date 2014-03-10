@@ -26,6 +26,29 @@ instead.
 }
 
 
+.java.check.ex.print.stack <- function() {
+  if (!is.null(e<-.jgetEx())) {
+    write("Java exception was raised", stderr())
+    baos <- new(J("java.io.StringWriter"))
+    ps <- .jnew("java.io.PrintWriter", 
+        .jcast(baos, new.class="java/io/Writer"))
+    e$printStackTrace(ps)
+    write(baos$toString(), stderr())
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+}
+
+#
+# override to get full stack traces
+#
+.jcheck <- function(silent=FALSE) {
+  if(.java.check.ex.print.stack())
+    write("(overridden .jcheck)", stderr())
+}
+
+
 .onLoad <- function(libname, pkgname) {
 	.jni <- try(get(".jniInitialized"),silent=TRUE)
 	if(inherits(.jni,"try-error"))
@@ -46,5 +69,14 @@ in the terminal. If you are using Mac OS X >= 10.7 you may want to try
 instead."
 		)
 	}	
+  
+  
+  unlockBinding(".jcheck", as.environment("package:rJava"))
+  assign(".jcheck", .jcheck, as.environment("package:rJava"))
+  lockBinding(".jcheck", as.environment("package:rJava"))
+  unlockBinding(".jcheck", getNamespace("rJava"))
+  assign(".jcheck", .jcheck, getNamespace("rJava"))
+  lockBinding(".jcheck", getNamespace("rJava"))
+  
 }
 

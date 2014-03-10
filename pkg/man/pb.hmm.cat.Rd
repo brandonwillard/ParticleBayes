@@ -2,15 +2,11 @@
 \alias{pb.hmm.cat}
 \title{Particle filter for a Hidden Markov Model with categorical emissions.}
 \usage{
-pb.hmm.cat(y, M, X, hmmClassProbs, hmmTransProbs, emissionProbs,
+pb.hmm.cat(y, hmmClassProbs, hmmTransProbs, emissionProbs,
   numParticles = 1000, seed = NULL)
 }
 \arguments{
   \item{y}{dependent variable vector}
-
-  \item{X}{explanatory variable matrix}
-
-  \item{M}{number of}
 
   \item{hmmClassProbs}{vector of initial HMM state
   probabilities}

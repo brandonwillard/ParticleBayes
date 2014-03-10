@@ -14,6 +14,7 @@ log.weights.sum =
 
 wf.result = pb.wf.resample(log.weights, wfN, x, log.weights.sum)
 
+
 # Plot the original distribution...
 plot(x, log.weights - log.weights.sum, type='l')
 

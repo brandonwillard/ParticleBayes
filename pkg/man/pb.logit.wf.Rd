@@ -1,11 +1,11 @@
 \name{pb.logit.wf}
 \alias{pb.logit.wf}
-\title{Particle filter implementing binomial logistic regression via a mixture
-of normals and using water-filling.}
+\title{Particle filter implementing binomial logistic regression via an EV mixture
+of normals approximation and water-filling.}
 \usage{
 pb.logit.wf(y, X, m0 = rep(0, ncol(X)), C0 = diag(ncol(X)),
   G = diag(nrow(C0)), W = diag(nrow(C0)), numParticles = 1000,
-  waterFilling = T, seed = NULL)
+  seed = NULL)
 }
 \arguments{
   \item{y}{dependent variable vector}
@@ -24,9 +24,6 @@ pb.logit.wf(y, X, m0 = rep(0, ncol(X)), C0 = diag(ncol(X)),
 
   \item{numParticles}{number of particles}
 
-  \item{waterFilling}{boolean value determining whether or
-  not to perform water-filling}
-
   \item{seed}{seed for the random number generator.}
 }
 \value{
@@ -35,7 +32,8 @@ its associated weight.
 }
 \description{
 Particle filter implementing binomial logistic regression
-via a mixture of normals and using water-filling.
+via an EV mixture of normals approximation and
+water-filling.
 }
 \details{
 For details concerning the algorithm see the paper by

@@ -16,7 +16,7 @@ import plm.hmm.HmmPlFilter;
 import plm.hmm.HmmTransitionState;
 import plm.hmm.StandardHMM;
 import plm.hmm.categorical.CategoricalHmmPlFilter;
-import plm.logit.fruehwirth.FruehwirthLogitParticle;
+import plm.logit.fruehwirth.LogitFSParticle;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -93,14 +93,14 @@ public class CategoricalHmmPLAdapter {
     double [][] logWeights = new double[y.length][filter.getNumParticles()];
     int [][] classIds = new int[y.length][filter.getNumParticles()];
     
-    logWeights[0] = Doubles.toArray(currentDist.asMap().values());
-    classIds[0] = 
-        Ints.toArray(Collections2.transform(currentDist.asMap().keySet(), 
-        new Function<HmmTransitionState<Integer, StandardHMM<Integer>>, Integer>() {
-          @Override
-          public Integer apply(HmmTransitionState<Integer, StandardHMM<Integer>> input) {
-            return input.getClassId();
-          }}));
+//    logWeights[0] = Doubles.toArray(currentDist.asMap().values());
+//    classIds[0] = 
+//        Ints.toArray(Collections2.transform(currentDist.asMap().keySet(), 
+//        new Function<HmmTransitionState<Integer, StandardHMM<Integer>>, Integer>() {
+//          @Override
+//          public Integer apply(HmmTransitionState<Integer, StandardHMM<Integer>> input) {
+//            return input.getClassId();
+//          }}));
 
     for (int t = 0; t < y.length; t++) {
       final ObservedValue<Integer, Void> obs = ObservedValue.<Integer>create(

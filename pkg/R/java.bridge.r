@@ -3,20 +3,8 @@
 # just no classes.  
 # Also, for development, use javap -s blah.class to get the actual signatures that rJava needs.
 # Much easier that way.
+# FYI: system.file("jri", package="rJava")
 #
-
-.java.check.ex.print.stack <- function() {
-  if (!is.null(e<-.jgetEx())) {
-    print("Java exception was raised")
-    baos <- new(J("java.io.StringWriter"))
-    ps <- .jnew("java.io.PrintWriter", .jcast(baos, new.class="java/io/Writer"))
-    e$printStackTrace(ps)
-    cat(baos$toString())
-    return(T)
-  } else {
-    return(F)
-  }
-}
 
 .jconvertCountedDataDistribution <- function(jobj, ref.support = NULL) {
   jmap = jobj$asMap()
@@ -47,25 +35,24 @@
 
 
 #'
-#' Computes the water-filling level, alpha, with which 
-#' samples, and their weights, are deterministically accepted.
+#' Computes the logarithm of the water-filling level, alpha, with which 
+#' samples, and their weights, are deterministically accepted in the
+#' water-filling resample method.
 #' 
 #' @param logWeights vector of log weights
 #' @param N the number of samples.  Must be <= the length of logWeights.
 #' @param logWeightsSum total log weight, i.e. log sum of weights.  The value 
 #'  \code{NULL} implies that the sum is to be computed.
 #' @details For details concerning the algorithm see the paper by Nicholas Polson, Brandon Willard (2014).
-#' @return numeric value of alpha
+#' @return numeric value of log(alpha)
 #' @references Nicholas G. Polson, Brandon Willard (2014), "Recursive Bayesian Computation".
 #' @author Brandon Willard \email{brandonwillard@@gmail.com}
 #' @seealso \code{\link{pb.wf.resample}}
 #' @examples 
-#' 
 #'   x = seq(0, 10, 1)
 #'   log.weights = dt(x, df=1, log=TRUE)
 #'   log.weights.sum = log(sum(dt(x, df=1, log=FALSE)))
-#' 
-#'   log.alpha = pb.wf.alpha(log.weights, log.weights.sum, 8)
+#'   log.alpha = pb.wf.alpha(log.weights, 8, log.weights.sum)
 #'   print(log.alpha)
 #' @keywords water-filling
 #' @export
@@ -83,7 +70,7 @@ pb.wf.alpha <- function(logWeights, N, logWeightsSum=NULL) {
     jlogSum = as.double(logWeightsSum)
   }
   # do this just in case
-  jlogWeights = jlogWeights - jlogSum
+  #jlogWeights = jlogWeights - jlogSum
 
   result = .jcall("com.statslibextensions.statistics.ExtSamplingUtils", "D","findLogAlpha", 
                   jlogWeights, jlogSum, jN, check=F)
@@ -155,8 +142,8 @@ pb.wf.resample <- function(logWeights, N, support=NULL,
 }
 
 #'
-#' Particle filter implementing binomial logistic regression via a mixture
-#' of normals and using water-filling.
+#' Particle filter implementing binomial logistic regression via an EV mixture
+#' of normals approximation and water-filling.
 #' 
 #' @param y dependent variable vector
 #' @param X explanatory variable matrix
@@ -165,7 +152,6 @@ pb.wf.resample <- function(logWeights, N, support=NULL,
 #' @param G constant state evolution matrix
 #' @param W constant state evolution covariance matrix
 #' @param numParticles number of particles
-#' @param waterFilling boolean value determining whether or not to perform water-filling
 #' @param seed seed for the random number generator.
 #' @details For details concerning the algorithm see the paper by Nicholas Polson, Brandon Willard (2014).
 #' @return A list containing each resampled object in the support and its associated weight. 
@@ -183,7 +169,7 @@ pb.wf.resample <- function(logWeights, N, support=NULL,
 pb.logit.wf <- function(y, X, 
     m0 = rep(0, ncol(X)), C0 = diag(ncol(X)), 
     G = diag(nrow(C0)), W = diag(nrow(C0)), 
-    numParticles = 1000, waterFilling=T, seed=NULL) {
+    numParticles = 1000, seed=NULL) {
 
   jseed = ifelse(is.null(seed), 
           as.integer(.Random.seed[sample(3:length(.Random.seed), 1)]), 
@@ -192,17 +178,56 @@ pb.logit.wf <- function(y, X,
   jC0 = .jarray(as.matrix(C0), dispatch=T) 
   jF = .jarray(t(as.matrix(X[1,])), dispatch=T) 
   jG = .jarray(as.matrix(G), dispatch=T)
+  jmodelCovar = .jarray(as.matrix(W), dispatch=T)
   jnumParticles = as.integer(numParticles)
-  jobsData = .jarray(as.matrix(X), dispatch=T) 
-  jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.FruehwirthLogitPLAdapter")
-  jResult = jFsPlAdapter$batchUpdate(jm0, jC0, jF, jG, jmodelCovar, 
-                                     .jarray(as.double(y)), 
-                                     jnumParticles,
-                                     jobsData,
-                                     waterFilling,
-                                     jseed) 
-  rlogWeights = .jevalArray(jResult$getLogWeights(), simplify=T)
-  rbetas = .jevalArray(jResult$getStateMeans(), simplify=T)
+  jX = .jarray(as.matrix(X), dispatch=T) 
+  jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.LogitFSAdapter")
+  jResult = jFsPlAdapter$batchUpdate(
+      .jarray(as.double(y)), jX,
+      jm0, jC0, 
+      jF, jG, jmodelCovar, 
+      jnumParticles,
+      jseed, 1) 
+
+  T = length(y)
+  N = numParticles
+  Nm = length(m0)
+  rlogWeights = aperm(structure(jResult$getLogWeights(), dim=c(N,T)), c(2,1))
+  rbetas = aperm(structure(jResult$getStateMeans(), dim=c(Nm,N,T)), c(3,2,1))
+
+  return(list(logWeights = rlogWeights, betas = rbetas))
+}
+
+#' This is only for testing other variants of the logit filter.
+#' @export 
+pb.logit.test <- function(y, X, 
+    m0 = rep(0, ncol(X)), C0 = diag(ncol(X)), 
+    G = diag(nrow(C0)), W = diag(nrow(C0)), 
+    numParticles = 1000, seed=NULL, version=as.integer(0)) {
+
+  jseed = ifelse(is.null(seed), 
+          as.integer(.Random.seed[sample(3:length(.Random.seed), 1)]), 
+          as.integer(seed))
+  jm0 = .jarray(m0) 
+  jC0 = .jarray(as.matrix(C0), dispatch=T) 
+  jF = .jarray(t(as.matrix(X[1,])), dispatch=T) 
+  jG = .jarray(as.matrix(G), dispatch=T)
+  jmodelCovar = .jarray(as.matrix(W), dispatch=T)
+  jnumParticles = as.integer(numParticles)
+  jX = .jarray(as.matrix(X), dispatch=T) 
+  jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.LogitFSAdapter")
+  jResult = jFsPlAdapter$batchUpdate(
+      .jarray(as.double(y)), jX,
+      jm0, jC0, 
+      jF, jG, jmodelCovar, 
+      jnumParticles,
+      jseed, as.integer(version)) 
+
+  T = length(y)
+  N = numParticles
+  Nm = length(m0)
+  rlogWeights = aperm(structure(jResult$getLogWeights(), dim=c(N,T)), c(2,1))
+  rbetas = aperm(structure(jResult$getStateMeans(), dim=c(Nm,N,T)), c(3,2,1))
 
   return(list(logWeights = rlogWeights, betas = rbetas))
 }
@@ -240,8 +265,6 @@ pb.logit.wf <- function(y, X,
 #' Particle filter for a Hidden Markov Model with categorical emissions. 
 #' 
 #' @param y dependent variable vector
-#' @param X explanatory variable matrix
-#' @param M number of 
 #' @param hmmClassProbs vector of initial HMM state probabilities
 #' @param hmmTransProbs matrix of HMM state stransitions
 #' @param emissionProbs vectors of probabilities for observable categories
@@ -257,7 +280,7 @@ pb.logit.wf <- function(y, X,
 #' @keywords water-filling 
 #' @keywords hidden markov model
 #' @export 
-pb.hmm.cat <- function(y, M, X, 
+pb.hmm.cat <- function(y,  
     hmmClassProbs, hmmTransProbs, emissionProbs,
     numParticles = 1000, seed=NULL) {
 
@@ -344,13 +367,28 @@ pb.dlm.ar <- function(y, FF,
       jnumSubSamples,
       .jarray(as.matrix(y), dispatch=T), 
       jnumParticles, jseed) 
-  rlogWeights = .jevalArray(jResult$getLogWeights(), simplify=T)
-  rstateMeans = .jevalArray(jResult$getStateMeans(), simplify=T)
-  rstateCovs = .jevalArray(jResult$getStateCovs(), simplify=T)
-  rpsiMeans = .jevalArray(jResult$getPsiMeans(), simplify=T)
-  rpsiCovs = .jevalArray(jResult$getPsiCovs(), simplify=T)
-  rsigma2Shapes = .jevalArray(jResult$getSigma2Shapes(), simplify=T)
-  rsigma2Scales = .jevalArray(jResult$getSigma2Scales(), simplify=T)
+
+  # to circumvent the .jevalArray problem for rectangular arrays
+  # we're now going to return flat arrays and use structure
+  T = length(y)
+  N = numParticles
+  Nm = length(m0)
+  Npsi = length(mPsi0)
+  rlogWeights = aperm(structure(jResult$getLogWeights(), dim=c(N,T)), c(2,1))
+  rstateMeans = aperm(structure(jResult$getStateMeans(), dim=c(Nm, N, T)), c(3,2,1))
+  rstateCovs = aperm(structure(jResult$getStateCovs(), dim=c(Nm^2, N, T)), c(3,2,1))
+  rpsiMeans = aperm(structure(jResult$getPsiMeans(), dim=c(Npsi, N, T)), c(3,2,1))
+  rpsiCovs = aperm(structure(jResult$getPsiCovs(), dim=c(Npsi^2, N, T)), c(3,2,1))
+  rsigma2Shapes = aperm(structure(jResult$getSigma2Shapes(), dim=c(N,T)), c(2,1))
+  rsigma2Scales = aperm(structure(jResult$getSigma2Scales(), dim=c(N,T)), c(2,1))
+
+  #rlogWeights = .jevalArray(jResult$getLogWeights(), simplify=T)
+  #rstateMeans = .jevalArray(jResult$getStateMeans(), simplify=T)
+  #rstateCovs = .jevalArray(jResult$getStateCovs(), simplify=T)
+  #rpsiMeans = .jevalArray(jResult$getPsiMeans(), simplify=T)
+  #rpsiCovs = .jevalArray(jResult$getPsiCovs(), simplify=T)
+  #rsigma2Shapes = .jevalArray(jResult$getSigma2Shapes(), simplify=T)
+  #rsigma2Scales = .jevalArray(jResult$getSigma2Scales(), simplify=T)
 
   return(list(logWeights = rlogWeights, 
           stateMeans = rstateMeans,
@@ -362,3 +400,13 @@ pb.dlm.ar <- function(y, FF,
   ))
 }
 
+##
+## Because .jevalArray with simplify=T isn't working for a 3d array...
+##
+## TODO, FIXME:  This is a horribly slow approach
+##
+#.hackedJevalArray = function(obj) {
+#  res = sapply(.jevalArray(obj), function(x) sapply(x, .jevalArray, simplify=T), simplify="array")
+#  res = aperm(res, c(3,2,1))
+#  return(res)
+#}
