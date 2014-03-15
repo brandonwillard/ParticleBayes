@@ -13,7 +13,8 @@ import java.util.Map.Entry;
 import java.util.Random;
 
 import plm.logit.fruehwirth.LogitFSWFFilter;
-import plm.logit.fruehwirth.LogitFSParticle;
+import plm.logit.fruehwirth.LogitMixParticle;
+import plm.logit.fruehwirth.LogitParRBCWFFilter;
 import plm.logit.fruehwirth.LogitRBCWFFilter;
 
 import com.google.common.base.Preconditions;
@@ -23,14 +24,14 @@ import com.google.common.primitives.Doubles;
 import com.statslibextensions.math.MutableDoubleCount;
 import com.statslibextensions.util.ObservedValue;
 
-public class LogitFSAdapter {
+public class LogitAdapter {
 
-  public static class RFruehwirthLogitPLResult {
+  public static class RLogitMixResult {
 
     private final double[] stateMeans;
     private final double[] logWeights;
 
-    public RFruehwirthLogitPLResult(List<Double> stateMeans, List<Double> logWeights) {
+    public RLogitMixResult(List<Double> stateMeans, List<Double> logWeights) {
       this.stateMeans = Doubles.toArray(stateMeans);
       this.logWeights = Doubles.toArray(logWeights);
     }
@@ -45,7 +46,7 @@ public class LogitFSAdapter {
     
   }
 
-  public static RFruehwirthLogitPLResult batchUpdate(
+  public static RLogitMixResult batchUpdate(
       double[] y, double[][] X, 
       double[] priorMean, double[][] priorCov, 
       double[][] F, double[][] G, double[][] modelCov,
@@ -54,7 +55,7 @@ public class LogitFSAdapter {
     ParticleFilter filter; 
 
     if (version == 1) {
-      // Uses suff. stats. in mixture likelihood and mixture utility sampling
+      // Uses suff. stats. in mixture likelihood and mixture utility sampling.
       filter = new LogitRBCWFFilter(
           new MultivariateGaussian(
               VectorFactory.getDefault().copyArray(priorMean),
@@ -63,8 +64,19 @@ public class LogitFSAdapter {
           MatrixFactory.getDefault().copyArray(G), 
           MatrixFactory.getDefault().copyArray(modelCov), 
           new Random(seed));
+    } else if (version == 2) {
+      // Uses suff. stats. in mixture likelihood and mixture utility sampling.
+      // This one runs on multiple threads
+      filter = new LogitParRBCWFFilter(
+          new MultivariateGaussian(
+              VectorFactory.getDefault().copyArray(priorMean),
+              MatrixFactory.getDefault().copyArray(priorCov)), 
+          MatrixFactory.getDefault().copyArray(F), 
+          MatrixFactory.getDefault().copyArray(G), 
+          MatrixFactory.getDefault().copyArray(modelCov), 
+          new Random(seed));
     } else {
-      // Samples beta for mixture likelihood and FS utility sampling
+      // Samples beta for mixture likelihood and FS utility sampling.
       filter = new LogitFSWFFilter(
           new MultivariateGaussian(
               VectorFactory.getDefault().copyArray(priorMean),
@@ -79,7 +91,7 @@ public class LogitFSAdapter {
 
     final Matrix data = MatrixFactory.getDefault().copyArray(X);
 
-    DataDistribution<LogitFSParticle> currentDist = (DataDistribution<LogitFSParticle>) filter.createInitialLearnedObject();
+    DataDistribution<LogitMixParticle> currentDist = (DataDistribution<LogitMixParticle>) filter.createInitialLearnedObject();
     final int Nx = data.getNumColumns();
     List<Double> logWeights = Lists.newArrayListWithExpectedSize(y.length*N);
     List<Double> stateMeans = Lists.newArrayListWithExpectedSize(y.length*N*Nx);
@@ -104,7 +116,7 @@ public class LogitFSAdapter {
 //      logWeights[t] = new double[filter.getNumParticles()];
 //      stateMeans[t] = new double[filter.getNumParticles()][data.getNumColumns()];
 //      int k = 0;
-      for (Entry<LogitFSParticle, ? extends Number> entry : currentDist.asMap().entrySet()) {
+      for (Entry<LogitMixParticle, ? extends Number> entry : currentDist.asMap().entrySet()) {
         final int count;
         if (entry.getValue() instanceof MutableDoubleCount) {
           count = ((MutableDoubleCount)entry.getValue()).count;
@@ -123,6 +135,6 @@ public class LogitFSAdapter {
       }
     }
 
-    return new RFruehwirthLogitPLResult(stateMeans, logWeights);
+    return new RLogitMixResult(stateMeans, logWeights);
   }
 }

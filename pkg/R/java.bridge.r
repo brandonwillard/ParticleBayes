@@ -1,6 +1,7 @@
 #
 # FYI: Compile the jars for 1.6, otherwise, rJava simply won't load the classes.  No errors,
-# just no classes.  
+# just no classes. (Actually, I think R's JRE and the compiled ones just have to match, naturally,
+# but to be safe...)  
 # Also, for development, use javap -s blah.class to get the actual signatures that rJava needs.
 # Much easier that way.
 # FYI: system.file("jri", package="rJava")
@@ -156,12 +157,12 @@ pb.wf.resample <- function(logWeights, N, support=NULL,
 #' @details For details concerning the algorithm see the paper by Nicholas Polson, Brandon Willard (2014).
 #' @return A list containing each resampled object in the support and its associated weight. 
 #' @references 
+#' Nicholas G. Polson, Brandon Willard (2014), "Recursive Bayesian Computation".
+
 #' Sylvia Fruehwirth-Schnatter and Rudolf Fruehwirth (2010),
 #' "Data augmentation and MCMC for binary and multinomial logit models."
 #' In \emph{Statistical Modelling and Regression Structures - Festschrift in Honour
 #' of Ludwig Fahrmeir}, T. Kneib and G. Tutz, Eds. Physica-Verlag, Heidelberg, pp. 111-132.
-#' 
-#' Nicholas G. Polson, Brandon Willard (2014), "Recursive Bayesian Computation".
 #' @author Brandon Willard \email{brandonwillard@@gmail.com}
 #' @keywords water-filling 
 #' @keywords logistic regression
@@ -181,7 +182,7 @@ pb.logit.wf <- function(y, X,
   jmodelCovar = .jarray(as.matrix(W), dispatch=T)
   jnumParticles = as.integer(numParticles)
   jX = .jarray(as.matrix(X), dispatch=T) 
-  jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.LogitFSAdapter")
+  jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.LogitAdapter")
   jResult = jFsPlAdapter$batchUpdate(
       .jarray(as.double(y)), jX,
       jm0, jC0, 
@@ -215,7 +216,7 @@ pb.logit.test <- function(y, X,
   jmodelCovar = .jarray(as.matrix(W), dispatch=T)
   jnumParticles = as.integer(numParticles)
   jX = .jarray(as.matrix(X), dispatch=T) 
-  jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.LogitFSAdapter")
+  jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.LogitAdapter")
   jResult = jFsPlAdapter$batchUpdate(
       .jarray(as.double(y)), jX,
       jm0, jC0, 
@@ -232,34 +233,6 @@ pb.logit.test <- function(y, X,
   return(list(logWeights = rlogWeights, betas = rbetas))
 }
 
-#wfMultiLogit <- function(y, M, X, 
-#    m0 = rep(0, ncol(X)), C0 = diag(ncol(X)), 
-#    G = diag(ncol(X)), W = diag(ncol(X)), 
-#    numParticles = 1000, seed=NULL) {
-#
-#  jseed = ifelse(is.null(seed), 
-#          as.integer(.Random.seed[sample(3:length(.Random.seed), 1)]), 
-#          as.integer(seed))
-#  jm0 = .jarray(m0) 
-#  jC0 = .jarray(as.matrix(C0), dispatch=T) 
-#  jF = .jarray(t(as.matrix(X[1,])), dispatch=T) 
-#  jG = .jarray(as.matrix(G), dispatch=T)
-#  jmodelCovar = .jarray(as.matrix(W), dispatch=T)
-#  jnumParticles = as.integer(numParticles)
-#  jnumCategories = as.integer(M)
-#  jobsData = .jarray(as.matrix(X), dispatch=T) 
-#  jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.FruehwirthMultiPLAdapter")
-#  jResult = jFsPlAdapter$batchUpdate(jm0, jC0, jF, jG, jmodelCovar, 
-#                                     .jarray(as.double(y)), 
-#                                     jnumParticles,
-#                                     jnumCategories,
-#                                     jobsData,
-#                                     jseed) 
-#  rlogWeights = .jevalArray(jResult$getLogWeights(), simplify=T)
-#  rbetas = .jevalArray(jResult$getStateMeans(), simplify=T)
-#
-#  return(list(logWeights = rlogWeights, betas = rbetas))
-#}
 
 #'
 #' Particle filter for a Hidden Markov Model with categorical emissions. 

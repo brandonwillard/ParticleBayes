@@ -16,7 +16,7 @@ import plm.hmm.HmmPlFilter;
 import plm.hmm.HmmTransitionState;
 import plm.hmm.StandardHMM;
 import plm.hmm.categorical.CategoricalHmmPlFilter;
-import plm.logit.fruehwirth.LogitFSParticle;
+import plm.logit.fruehwirth.LogitMixParticle;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
