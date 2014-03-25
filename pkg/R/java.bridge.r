@@ -170,7 +170,7 @@ pb.wf.resample <- function(logWeights, N, support=NULL,
 pb.logit.wf <- function(y, X, 
     m0 = rep(0, ncol(X)), C0 = diag(ncol(X)), 
     G = diag(nrow(C0)), W = diag(nrow(C0)), 
-    numParticles = 1000, seed=NULL) {
+    numParticles = 1000, seed=NULL, parallel=TRUE) {
 
   jseed = ifelse(is.null(seed), 
           as.integer(.Random.seed[sample(3:length(.Random.seed), 1)]), 
@@ -183,12 +183,14 @@ pb.logit.wf <- function(y, X,
   jnumParticles = as.integer(numParticles)
   jX = .jarray(as.matrix(X), dispatch=T) 
   jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.LogitAdapter")
+  jVersion = as.integer(ifelse(parallel, 0, 1))
   jResult = jFsPlAdapter$batchUpdate(
       .jarray(as.double(y)), jX,
       jm0, jC0, 
       jF, jG, jmodelCovar, 
-      jnumParticles,
-      jseed, 1) 
+      jnumParticles, 0,
+      jseed, 
+      jVersion) 
 
   T = length(y)
   N = numParticles
@@ -204,7 +206,7 @@ pb.logit.wf <- function(y, X,
 pb.logit.test <- function(y, X, 
     m0 = rep(0, ncol(X)), C0 = diag(ncol(X)), 
     G = diag(nrow(C0)), W = diag(nrow(C0)), 
-    numParticles = 1000, seed=NULL, version=as.integer(0)) {
+    numParticles = 1000, K=10, seed=NULL, version=as.integer(0)) {
 
   jseed = ifelse(is.null(seed), 
           as.integer(.Random.seed[sample(3:length(.Random.seed), 1)]), 
@@ -215,14 +217,16 @@ pb.logit.test <- function(y, X,
   jG = .jarray(as.matrix(G), dispatch=T)
   jmodelCovar = .jarray(as.matrix(W), dispatch=T)
   jnumParticles = as.integer(numParticles)
+  jK = as.integer(K)
   jX = .jarray(as.matrix(X), dispatch=T) 
   jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.LogitAdapter")
   jResult = jFsPlAdapter$batchUpdate(
       .jarray(as.double(y)), jX,
       jm0, jC0, 
       jF, jG, jmodelCovar, 
-      jnumParticles,
-      jseed, as.integer(version)) 
+      jnumParticles, jK,
+      jseed, 
+      as.integer(version)) 
 
   T = length(y)
   N = numParticles
