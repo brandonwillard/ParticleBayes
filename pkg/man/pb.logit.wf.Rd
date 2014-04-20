@@ -5,7 +5,7 @@ of normals approximation and water-filling.}
 \usage{
 pb.logit.wf(y, X, m0 = rep(0, ncol(X)), C0 = diag(ncol(X)),
   G = diag(nrow(C0)), W = diag(nrow(C0)), numParticles = 1000,
-  seed = NULL)
+  seed = NULL, parallel = TRUE)
 }
 \arguments{
   \item{y}{dependent variable vector}
@@ -43,15 +43,13 @@ Nicholas Polson, Brandon Willard (2014).
 Brandon Willard \email{brandonwillard@gmail.com}
 }
 \references{
-Sylvia Fruehwirth-Schnatter and Rudolf Fruehwirth (2010),
-"Data augmentation and MCMC for binary and multinomial
-logit models." In \emph{Statistical Modelling and
-Regression Structures - Festschrift in Honour of Ludwig
-Fahrmeir}, T. Kneib and G. Tutz, Eds. Physica-Verlag,
-Heidelberg, pp. 111-132.
-
 Nicholas G. Polson, Brandon Willard (2014), "Recursive
-Bayesian Computation".
+Bayesian Computation". Sylvia Fruehwirth-Schnatter and
+Rudolf Fruehwirth (2010), "Data augmentation and MCMC for
+binary and multinomial logit models." In \emph{Statistical
+Modelling and Regression Structures - Festschrift in Honour
+of Ludwig Fahrmeir}, T. Kneib and G. Tutz, Eds.
+Physica-Verlag, Heidelberg, pp. 111-132.
 }
 \keyword{logistic}
 \keyword{regression}

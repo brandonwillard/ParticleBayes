@@ -22,7 +22,7 @@ hmmTransProbs = P
 emissionProbs = py
 numParticles = 100
 seed = 12335
-res = pb.dlm.ar(
+res = pb.hmm.cat(
     y,
     hmmClassProbs,
     hmmTransProbs,

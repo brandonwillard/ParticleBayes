@@ -63,7 +63,7 @@ pb.wf.alpha <- function(logWeights, N, logWeightsSum=NULL) {
   stopifnot(N > 1)
 
   if (is.null(logWeightsSum)) {
-    jlogSum = .jcall("com.statslibextensions.statistics.ExtSamplingUtils", "D","logSum", 
+    jlogSum = .jcall("com.statslibextensions.util.ExtSamplingUtils", "D","logSum", 
                      jlogWeights, check=F)
     if(.java.check.ex.print.stack())
       return(NULL)
@@ -73,7 +73,7 @@ pb.wf.alpha <- function(logWeights, N, logWeightsSum=NULL) {
   # do this just in case
   #jlogWeights = jlogWeights - jlogSum
 
-  result = .jcall("com.statslibextensions.statistics.ExtSamplingUtils", "D","findLogAlpha", 
+  result = .jcall("com.statslibextensions.util.ExtSamplingUtils", "D","findLogAlpha", 
                   jlogWeights, jlogSum, jN, check=F)
   if(.java.check.ex.print.stack())
     return(NULL)
@@ -123,13 +123,13 @@ pb.wf.resample <- function(logWeights, N, support=NULL,
   jN = as.integer(N)
 
   if (is.null(logWeightsSum)) {
-    jlogSum = .jcall("com.statslibextensions.statistics.ExtSamplingUtils", 
+    jlogSum = .jcall("com.statslibextensions.util.ExtSamplingUtils", 
                      "D","logSum", jlogWeights, check=F)
   } else {
     jlogSum = as.double(logWeightsSum)
   }
 
-  jresult = .jcall("com.statslibextensions.statistics.ExtSamplingUtils", 
+  jresult = .jcall("com.statslibextensions.util.ExtSamplingUtils", 
                   "Lcom/statslibextensions/statistics/distribution/WFCountedDataDistribution;",
                   "waterFillingResample", jlogWeights, jlogSum, 
                   .jcast(jobjects, new.class="java/util/Collection"), jrng, jN, check=F)
@@ -266,16 +266,21 @@ pb.hmm.cat <- function(y,
           as.integer(seed))
   jhmmClassProbs = .jarray(hmmClassProbs) 
   mhmmTransProbs = as.matrix(hmmTransProbs)
-  stopifnot(nrow(mhmmTransProbs) != length(hmmClassProbs))
+
+  stopifnot(nrow(mhmmTransProbs) == length(hmmClassProbs))
+
   jhmmTransProbs = .jarray(mhmmTransProbs, dispatch=T) 
   memissionProbs = as.matrix(emissionProbs)
-  stopifnot(nrow(memissionProbs) != length(memissionProbs))
+  stopifnot(nrow(memissionProbs) == length(hmmClassProbs))
+
   jemissionProbs = .jarray(memissionProbs, dispatch=T) 
+  jnumParticles = as.integer(numParticles)
+
   jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.CategoricalHmmPLAdapter")
   jResult = jFsPlAdapter$batchUpdate(jhmmClassProbs, jhmmTransProbs, jemissionProbs,
                                      .jarray(as.integer(y)), 
                                      jnumParticles,
-                                     jseed) 
+                                     FALSE, jseed) 
   rlogWeights = .jevalArray(jResult$getLogWeights(), simplify=T)
   rclassIds = .jevalArray(jResult$getClassIds(), simplify=T)
 
@@ -310,18 +315,18 @@ pb.hmm.cat <- function(y,
 #' @keywords water-filling 
 #' @keywords hidden markov model
 #' @export  
-pb.dlm.ar <- function(y, FF,
+pb.dlm.ar1 <- function(y, FF,
     m0, C0 = diag(length(m0)), 
     mPsi0 = rep(0, 2*ncol(C0)), CPsi0 = diag(2*ncol(C0)), 
-    sigma2Scale = 2, sigma2Shape = 1,  
+    sigma2Scale = 1, sigma2Shape = 2,  
     numSubSamples = 3, numParticles = 1000, seed=NULL) {
 
   stopifnot(length(m0) == nrow(C0))
   stopifnot(length(mPsi0) == nrow(CPsi0))
   stopifnot(length(mPsi0)/2 == length(m0))
   stopifnot(numSubSamples >= 1)
-  stopifnot(sigma2Scale > 1)
-  stopifnot(sigma2Shape > 0)
+  stopifnot(sigma2Scale > 0)
+  stopifnot(sigma2Shape > 1)
 
   jseed = ifelse(is.null(seed), 
           as.integer(.Random.seed[sample(3:length(.Random.seed), 1)]), 
@@ -339,7 +344,7 @@ pb.dlm.ar <- function(y, FF,
   jResult = jFsPlAdapter$batchUpdate(
       jm0, jC0, 
       jmPsi0, jCPsi0, 
-      jsigma2Shape, jsigma2Scale,
+      jsigma2Scale, jsigma2Shape,
       jF, 
       jnumSubSamples,
       .jarray(as.matrix(y), dispatch=T), 
@@ -366,6 +371,104 @@ pb.dlm.ar <- function(y, FF,
   #rpsiCovs = .jevalArray(jResult$getPsiCovs(), simplify=T)
   #rsigma2Shapes = .jevalArray(jResult$getSigma2Shapes(), simplify=T)
   #rsigma2Scales = .jevalArray(jResult$getSigma2Scales(), simplify=T)
+
+  return(list(logWeights = rlogWeights, 
+          stateMeans = rstateMeans,
+          stateCovs = rstateCovs,
+          psiMeans = rpsiMeans,
+          psiCovs = rpsiCovs,
+          sigma2Shapes = rsigma2Shapes,
+          sigma2Scales = rsigma2Scales
+  ))
+}
+
+#'
+#' Particle filter for a gaussian AR(1) dynamic linear model modulated by an HMM.
+#' States have normal priors, psi is a joint normal that consists of AR(1) and state offset parameters
+#' and sigma2 has an inverse-gamma prior. Psi and sigma2 are state dependent.
+#' 
+#' 
+#' @param y dependent variable vector
+#' @param FF observation matrix
+#' @param m0 state prior mean vector
+#' @param C0 state prior covariance matrix
+#' @param mPsi0 vector of state transition constant and AR(1) prior means
+#' @param CPsi0 state transition constant and AR(1) prior covariance matrix
+#' @param sigma2Scale scale parameter for sigma2 inverse-gamma prior
+#' @param sigma2Shape shape parameter for sigma2 inverse-gamma prior
+#' @param initialClassProbs initial class probabilities
+#' @param transProbs transition probabilities
+#' @param numSubSamples sub samples for state variable
+#' @param numParticles number of particles
+#' @param seed seed for the random number generator.
+#' @details For details concerning the algorithm see the paper by Nicholas Polson, Brandon Willard (2014).
+#' @return returns a list containing matrices spanning time, particle and values, where values
+#' are logWeights, stateMeans, stateCovs, psiMeans, psiCovs, sigma2Shapes, and sigma2Scales
+#' @references 
+#' Nicholas G. Polson, Brandon Willard (2014), "Recursive Bayesian Computation".
+#' @author Brandon Willard \email{brandonwillard@@gmail.com}
+#' @keywords autoregressive
+#' @keywords dynamic linear model 
+#' @keywords dlm 
+#' @keywords water-filling 
+#' @keywords hidden markov model
+#' @export  
+pb.hmm.ar1 <- function(y, FF,
+    m0, C0 = diag(length(m0)), 
+    mPsi0 = rep(0, 2*ncol(C0)), CPsi0 = diag(2*ncol(C0)), 
+    sigma2Scale = 1, sigma2Shape = 2,  
+    initialProbs, transProbs,
+    numSubSamples = 3, numParticles = 1000, seed=NULL) {
+
+  stopifnot(length(m0) == nrow(C0))
+  stopifnot(length(mPsi0) == nrow(CPsi0))
+  stopifnot(length(mPsi0)/2 == length(m0))
+  stopifnot(numSubSamples >= 1)
+  stopifnot(sigma2Shape > 1)
+  stopifnot(sigma2Scale > 0)
+
+  jseed = ifelse(is.null(seed), 
+          as.integer(.Random.seed[sample(3:length(.Random.seed), 1)]), 
+          as.integer(seed))
+
+  jF = .jarray(as.matrix(FF), dispatch=T) 
+  jm0 = .jarray(m0) 
+  jC0 = .jarray(as.matrix(C0), dispatch=T) 
+  jmPsi0 = .jarray(mPsi0) 
+  jCPsi0 = .jarray(as.matrix(CPsi0), dispatch=T) 
+  jsigma2Scale = as.double(sigma2Scale)
+  jsigma2Shape = as.double(sigma2Shape)
+  jinitialProbs = .jarray(initialProbs)
+  jtransProbs = .jarray(as.matrix(transProbs), dispatch=T) 
+
+  jnumParticles = as.integer(numParticles)
+  jnumSubSamples = as.integer(numSubSamples)
+
+  # TODO FIXME: need to allow one to specify each psi and sigma2 prior separately.
+  jFsPlAdapter = J("org.bitbucket.brandonwillard.particlebayes.radapters.GaussianArHpHmmPLAdapter")
+  jResult = jFsPlAdapter$batchUpdate(
+      .jarray(as.matrix(y), dispatch=T), jF,
+      jm0, jC0, 
+      jmPsi0, jCPsi0, 
+      jsigma2Scale, jsigma2Shape,
+      jinitialProbs, jtransProbs,
+      jnumSubSamples,
+      jnumParticles, jseed) 
+
+  # to circumvent the .jevalArray problem for rectangular arrays
+  # we're now going to return flat arrays and use structure
+  T = length(y)
+  N = numParticles
+  Nm = length(m0)
+  Npsi = length(mPsi0)
+  Np = length(initialProbs)
+  rlogWeights = aperm(structure(jResult$getLogWeights(), dim=c(N,T)), 2:1)
+  rstateMeans = aperm(structure(jResult$getStateMeans(), dim=c(Nm,N,T)), 3:1)
+  rstateCovs = aperm(structure(jResult$getStateCovs(), dim=c(Nm^2,N,T)), 3:1)
+  rpsiMeans = aperm(structure(jResult$getPsiMeans(), dim=c(Np,Npsi,N,T)), 4:1)
+  rpsiCovs = aperm(structure(jResult$getPsiCovs(), dim=c(Np,Npsi^2,N,T)), 4:1)
+  rsigma2Shapes = aperm(structure(jResult$getSigma2Shapes(), dim=c(Np,N,T)), 3:1)
+  rsigma2Scales = aperm(structure(jResult$getSigma2Scales(), dim=c(Np,N,T)), 3:1)
 
   return(list(logWeights = rlogWeights, 
           stateMeans = rstateMeans,

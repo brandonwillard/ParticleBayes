@@ -1,4 +1,5 @@
-export(pb.dlm.ar)
+export(pb.dlm.ar1)
+export(pb.hmm.ar1)
 export(pb.hmm.cat)
 export(pb.logit.test)
 export(pb.logit.wf)

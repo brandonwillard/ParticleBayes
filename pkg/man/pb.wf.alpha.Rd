@@ -1,7 +1,8 @@
 \name{pb.wf.alpha}
 \alias{pb.wf.alpha}
-\title{Computes the water-filling level, alpha, with which
-samples, and their weights, are deterministically accepted.}
+\title{Computes the logarithm of the water-filling level, alpha, with which
+samples, and their weights, are deterministically accepted in the
+water-filling resample method.}
 \usage{
 pb.wf.alpha(logWeights, N, logWeightsSum = NULL)
 }
@@ -16,11 +17,13 @@ pb.wf.alpha(logWeights, N, logWeightsSum = NULL)
   to be computed.}
 }
 \value{
-numeric value of alpha
+numeric value of log(alpha)
 }
 \description{
-Computes the water-filling level, alpha, with which
-samples, and their weights, are deterministically accepted.
+Computes the logarithm of the water-filling level, alpha,
+with which samples, and their weights, are
+deterministically accepted in the water-filling resample
+method.
 }
 \details{
 For details concerning the algorithm see the paper by
@@ -30,8 +33,7 @@ Nicholas Polson, Brandon Willard (2014).
 x = seq(0, 10, 1)
   log.weights = dt(x, df=1, log=TRUE)
   log.weights.sum = log(sum(dt(x, df=1, log=FALSE)))
-
-  log.alpha = pb.wf.alpha(log.weights, log.weights.sum, 8)
+  log.alpha = pb.wf.alpha(log.weights, 8, log.weights.sum)
   print(log.alpha)
 }
 \author{

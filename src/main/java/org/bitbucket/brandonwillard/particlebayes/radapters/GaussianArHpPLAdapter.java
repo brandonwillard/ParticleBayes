@@ -28,7 +28,7 @@ import plm.hmm.DlmHiddenMarkovModel;
 import plm.hmm.HmmPlFilter;
 import plm.hmm.HmmTransitionState;
 import plm.hmm.StandardHMM;
-import plm.hmm.gaussian.GaussianArHpHmmPlFilter;
+import plm.hmm.gaussian.GaussianArHpHmmPLFilter;
 import plm.hmm.gaussian.GaussianArHpTransitionState;
 
 import com.google.common.base.Function;
